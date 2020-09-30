@@ -4,7 +4,7 @@ const router = express.Router()
 
 
 router.get('/', (req,res) => {
-	res.send('Pagina  de Principal do adm')
+	res.render('admin/index')
 })
 
 
