@@ -22,6 +22,12 @@ router.get('/posts', (req, res) => {
 	res.send('Pagina de  posts')
 })
 
+
+router.get('/teste', (req, res) => {
+	 res.send(req.flash('succees_msg')[0]);
+})
+
+
 router.post('/categorias/create', (req, res) => {
 
 	var erros = [];
@@ -46,12 +52,8 @@ router.post('/categorias/create', (req, res) => {
 			slug: req.body.slug
 		}
 		new Categoria(novaCatergoria).save().then(() => {
-			dataSuccess = {
-				message: "Categoria cadastrada com sucesso"
-			}
-			//res.send(sucess_msg)
-			//res.render("/admin/Categorias", dataSuccess)
-			res.render('admin/categorias', dataSuccess)
+			req.flash("success_msg", "Categoria salva com sucesso");
+			res.redirect("/admin/categorias")
 		}).catch((err) => {
 			req.flash("error_msg", "Houve um erro ao cadastrar categorias, tente novamente")
 			console.log("Erro ao salvar" + err)
@@ -59,7 +61,6 @@ router.post('/categorias/create', (req, res) => {
 
 	}
 })
-
 
 
 module.exports = router

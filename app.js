@@ -25,14 +25,13 @@ const flash = require("connect-flash");
 	//Middleware
 
 	app.use((req,res,next) => {
-		res.locals.success_msg = req.flash('sucess_msg')
-		res.locals.error_msg = req.flash('error_msg')
-		delete req.session.success_msg;
-		delete req.session.error_msg;
+		res.locals.success_msg = req.flash("success_msg")
+		res.locals.error_msg = req.flash("error_msg")
+		//res.locals.message = req.flash();
 		next()
 	})
 
-	//BodyParser
+	//BodyParse-r
 	app.use(express.urlencoded({ extended: true }))
 	app.use(bodyParser.json())
 
