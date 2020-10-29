@@ -3,7 +3,8 @@ const router = express.Router()
 const mongoose = require('mongoose')
 require("../models/Categoria")
 const Categoria = mongoose.model("categorias")
-
+require("../models/Postagem")
+const Postagem = mongoose.model("postagens")
 
 router.get('/', (req, res) => {
 	res.render('admin/index')
@@ -126,6 +127,58 @@ router.post('/categorias/deletar/',(req,res) => {
 		req.flash("error_msg", "Houve um erro ao deletar categorias, tente novamente")
 		res.redirect("/admin/categorias")
 	})
+})
+
+
+
+
+router.get("/postagens", (req,res) => {
+
+	Postagem.find().lean().populate("categoria").sort({data: "desc"}).then((Postagem) => {
+		res.render('admin/postagens', {Postagem: Postagem})
+	}).catch((err) => {
+		req.flash("error_msg", "Falha na busca por Postagens")
+		res.redirect("/admin")
+	})
+	
+})
+
+
+router.get("/postagem/add", (req, res) => {
+
+	Categoria.find().lean().then((categoria) => {
+		res.render("admin/addPostagem", {categoria: categoria})
+	}).catch((err) => {
+		req.flash("error_msg", "Falha na busca por categorias")
+		res.redirect("/admin")
+	})
+	
+})
+
+
+router.post("/postagem/salvar", (req, res) => {
+	var erros = []
+	if (req.body.categoria == 0 || typeof req.body.categoria == 'undefined' || req.body.categoria == '') {
+		erros.push({text: "categoria invalida, tente novamente"})
+	}
+	if(erros.length > 0){
+		res.render('admin/addPostagem', { erros: erros })
+	}else{
+		const novaPostagem = {
+			titulo: req.body.titulo,
+			slug: req.body.slug,
+			descricao: req.body.descricao,
+			conteudo: req.body.conteudo,
+			categoria: req.body.categoria,
+		}
+		new Postagem(novaPostagem).save().then(() => {
+			req.flash("success_msg", "Postagem salva com sucesso")
+			res.redirect("/admin/postagens")
+		}).catch((err) => {
+			req.flash("error_msg", "Erro ao salvar postagem tente novamente")
+			res.redirect("/admin/postagens")
+		})
+	}
 })
 
 
