@@ -13,7 +13,7 @@ require("./models/Postagem")
 const Postagem = mongoose.model("postagens")
 
 //Setings
-
+//olá mundo tudo bem
 //Session
 
 app.use(session({
