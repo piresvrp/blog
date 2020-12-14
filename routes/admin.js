@@ -119,8 +119,8 @@ router.post('/categorias/create', (req, res) => {
 	}
 })
 
-router.post('/categorias/deletar/',(req,res) => {
-	Categoria.remove({_id:req.body.id}).then(() => {
+router.post('/categorias/deletar/', (req, res) => {
+	Categoria.remove({ _id: req.body.id }).then(() => {
 		req.flash("success_msg", "Categoria deletada com sucesso")
 		res.redirect("/admin/categorias")
 	}).catch((err) => {
@@ -132,53 +132,103 @@ router.post('/categorias/deletar/',(req,res) => {
 
 
 
-router.get("/postagens", (req,res) => {
+router.get("/postagens", (req, res) => {
 
-	Postagem.find().lean().populate("categoria").sort({data: "desc"}).then((Postagem) => {
-		res.render('admin/postagens', {Postagem: Postagem})
+	Postagem.find().lean().populate("categoria").sort({ data: "desc" }).then((Postagem) => {
+		res.render('admin/postagens', { Postagem: Postagem })
 	}).catch((err) => {
 		req.flash("error_msg", "Falha na busca por Postagens")
 		res.redirect("/admin")
 	})
-	
+
 })
 
 
 router.get("/postagem/add", (req, res) => {
 
 	Categoria.find().lean().then((categoria) => {
-		res.render("admin/addPostagem", {categoria: categoria})
+		res.render("admin/addPostagem", { categoria: categoria })
 	}).catch((err) => {
 		req.flash("error_msg", "Falha na busca por categorias")
 		res.redirect("/admin")
 	})
-	
+
 })
 
 
 router.post("/postagem/salvar", (req, res) => {
 	var erros = []
 	if (req.body.categoria == 0 || typeof req.body.categoria == 'undefined' || req.body.categoria == '') {
-		erros.push({text: "categoria invalida, tente novamente"})
+		erros.push({ text: "categoria invalida, tente novamente" })
 	}
-	if(erros.length > 0){
+	if (erros.length > 0) {
 		res.render('admin/addPostagem', { erros: erros })
-	}else{
-		const novaPostagem = {
-			titulo: req.body.titulo,
-			slug: req.body.slug,
-			descricao: req.body.descricao,
-			conteudo: req.body.conteudo,
-			categoria: req.body.categoria,
+	} else {
+
+		if (req.body.id != null && typeof req.body.id != 'undefined' && req.body.id != '') {
+			Postagem.findOne({ _id: req.body.id }).then((postagem) => {
+				postagem.titulo = req.body.titulo
+				postagem.slug = req.body.slug
+				postagem.descricao = req.body.descricao
+				postagem.conteudo = req.body.conteudo
+				postagem.categoria = req.body.categoria
+				postagem.save().then(() => {
+					req.flash("success_msg", "Postagem salva com sucesso");
+					res.redirect("/admin/postagens")
+				}).catch((err) => {
+					req.flash("error_msg", "houve um erro interno ao salvar  a Postagem")
+					res.redirect("/admin/postagens")
+				})
+			}).catch((err) => {
+				req.flash("error_msg", "houve um erro ao editar  a categoria")
+				res.redirect("/admin/postagens")
+			})
+
+		} else {
+			const novaPostagem = {
+				titulo: req.body.titulo,
+				slug: req.body.slug,
+				descricao: req.body.descricao,
+				conteudo: req.body.conteudo,
+				categoria: req.body.categoria,
+			}
+			new Postagem(novaPostagem).save().then(() => {
+				req.flash("success_msg", "Postagem salva com sucesso")
+				res.redirect("/admin/postagens")
+			}).catch((err) => {
+				req.flash("error_msg", "Erro ao salvar postagem tente novamente")
+				res.redirect("/admin/postagens")
+			})
 		}
-		new Postagem(novaPostagem).save().then(() => {
-			req.flash("success_msg", "Postagem salva com sucesso")
-			res.redirect("/admin/postagens")
-		}).catch((err) => {
-			req.flash("error_msg", "Erro ao salvar postagem tente novamente")
-			res.redirect("/admin/postagens")
-		})
 	}
+
+})
+
+
+router.get("/postagem/edit/:id", (req, res) => {
+	Postagem.findOne({ _id: req.params.id }).lean().then((Postagem) => {
+		Categoria.find().lean().then((Categorias) => {
+			res.render('admin/editPostagem', { Postagem: Postagem, Categorias: Categorias })
+		}).catch((err) => {
+			req.flash("error_msg", "Erro ao buscar categorias em postagens")
+			res.redirect("admin/Postagem")
+		})
+	}).catch((err) => {
+		req.flash("error_msg", "erro ao buscar posttagem")
+		res.redirect("/admin/Postagem")
+	})
+
+})
+
+router.post("/postagem/deletar",(req, res) => {
+	Postagem.remove({_id: req.body.id}).then(() => {
+		req.flash("success_msg", "Postagem deletada com sucesso")
+		res.redirect("/admin/postagens")
+	}).catch((err) => {
+		console.log(err)
+		req.flash("error_msg", "Erro ao deletar postagem")
+		res.redirect("/admin/postagens")
+	})
 })
 
 
